@@ -1,0 +1,19 @@
+{
+  "name": "netlab",
+  "version": "1.0.0",
+  "description": "A zero-dependency network explorer CLI: DNS, IPs, ports and TCP latency.",
+  "type": "module",
+  "bin": {
+    "netlab": "./bin/netlab.js"
+  },
+  "files": ["bin", "src"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["network", "dns", "cli", "tcp", "port"],
+  "author": "omkardalu",
+  "license": "MIT"
+}
