@@ -59,7 +59,10 @@ npm test
 
 ## What I learned
 
-(Fill this in per feature: the networking concept each command made concrete.)
+- DNS resolution: how Node resolves A, CNAME, and MX records and how TTLs affect cached lookups.
+- IP discovery: how to enumerate OS network interfaces and distinguish public vs local/private addresses.
+- TCP sockets: how a client connects to a host/port, interprets connect, timeout, and refusal events, and checks port reachability.
+- Latency measurement: how repeated TCP handshakes can estimate connection latency and how timing is affected by networking delays.
 
 ## License
 

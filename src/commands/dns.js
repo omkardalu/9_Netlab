@@ -1,10 +1,9 @@
 import { Resolver } from 'node:dns/promises';
-import { table } from '../lib/format.js';
+import { emit, table } from '../lib/format.js';
 
 async function query(domain, server = 'system') {
   const resolver = new Resolver();
 
-  // Leave default system DNS servers when server is "system".
   if (server !== 'system') resolver.setServers([server]);
 
   async function noDataAsEmpty(promise) {
@@ -41,34 +40,48 @@ export default {
     type: { type: 'string', short: 't', default: 'A' },
   },
   async run({ values, positionals }) {
-    const result = await query(positionals[0]);
-    if(values.json){
-      return result;
-    }else{
+    const domain = positionals[0];
+    const type = (values.type ?? 'A').toUpperCase();
+    const result = await query(domain);
+
+    if (values.json) {
+      const filtered = {
+        ...result,
+        type,
+        records: { [type]: result.records[type] ?? [] },
+      };
+      emit(values, filtered, (data) => JSON.stringify(data, null, 2));
+      return filtered;
+    }
+
+    const selected = result.records[type] ?? [];
+    const label = type === 'MX' ? 'MX' : type;
+
+    if (type === 'A') {
       console.log(`
 ${result.domain} (resolver: system default)
 
-A
-${table(
-  result.records.A ,[
+${label}
+${table(selected, [
   { key: 'address', label: 'Address' },
   { key: 'ttl', label: 'TTL', align: 'right' },
-  ]
-)}
-
-CNAME
-${result.records.CNAME}
-
-MX
-${table(
-  result.records.MX ,[
-{ key: 'priority', label: 'Priority', align: 'right' },
-{ key: 'exchange', label: 'Exchange' },
-  ]
-)}
-        `);
-      
+])}
+`);
+      return result;
     }
 
+    console.log(`
+${result.domain} (resolver: system default)
+
+${label}
+${type === 'MX'
+  ? table(selected, [
+      { key: 'priority', label: 'Priority', align: 'right' },
+      { key: 'exchange', label: 'Exchange' },
+    ])
+  : selected.join('\n') || 'No records'}
+`);
+
+    return result;
   },
 };
