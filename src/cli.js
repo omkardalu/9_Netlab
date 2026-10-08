@@ -1,17 +1,17 @@
-import { parseArgs } from 'node:util';
-import { readFileSync } from 'node:fs';
-import { commands } from './commands/index.js';
-import { CliError, UsageError } from './lib/errors.js';
-
+import { parseArgs } from "node:util";
+import { readFileSync } from "node:fs";
+import { commands } from "./commands/index.js";
+import { CliError, UsageError } from "./lib/errors.js";
+import { err as paintErr } from "./lib/format.js";
 const { version } = JSON.parse(
-  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 );
 
 function helpText() {
   const width = Math.max(...[...commands.keys()].map((n) => n.length));
   const rows = [...commands.values()]
     .map((c) => `  ${c.name.padEnd(width)}  ${c.summary}`)
-    .join('\n');
+    .join("\n");
 
   return `netlab ${version} - a network explorer CLI
 
@@ -24,6 +24,7 @@ ${rows}
 Global options:
   -h, --help       Show help ("netlab <command> --help" for a command)
   -v, --version    Show version
+  --json           Output machine-readable JSON
 `;
 }
 
@@ -34,11 +35,11 @@ function commandHelp(cmd) {
 async function main(argv) {
   const [name, ...rest] = argv;
 
-  if (!name || name === '-h' || name === '--help' || name === 'help') {
+  if (!name || name === "-h" || name === "--help" || name === "help") {
     console.log(helpText());
     return;
   }
-  if (name === '-v' || name === '--version') {
+  if (name === "-v" || name === "--version") {
     console.log(version);
     return;
   }
@@ -55,7 +56,11 @@ async function main(argv) {
   try {
     parsed = parseArgs({
       args: rest,
-      options: { help: { type: 'boolean', short: 'h' }, ...command.options },
+      options: {
+        help: { type: "boolean", short: "h" },
+        json: { type: "boolean" },
+        ...command.options,
+      },
       allowPositionals: true,
       strict: true,
     });
@@ -76,8 +81,8 @@ export async function run(argv) {
     await main(argv);
   } catch (err) {
     if (err instanceof CliError) {
-      console.error(`error: ${err.message}`);
-      if (err.hint) console.error(err.hint);
+      console.error(`${paintErr.red("error:")} ${err.message}`);
+      if (err.hint) console.error(paintErr.dim(err.hint));
       process.exitCode = err.exitCode;
     } else {
       console.error(`unexpected error: ${err.message}`);
